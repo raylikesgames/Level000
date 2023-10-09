@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple 2D Slope</title>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<script src="game.js"></script>
+</body>
+</html>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const player = {
+    x: canvas.width / 2,
+    y: canvas.height - 30,
+    radius: 10,
+    speed: 4
+};
+
+const obstacles = [];
+const obstacleWidth = 60;
+const obstacleHeight = 10;
+
+let score = 0;
+
+function mainLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    handlePlayer();
+    handleObstacles();
+    requestAnimationFrame(mainLoop);
+}
+
+function handlePlayer() {
+    if (player.x < 0) player.x = 0;
+    if (player.x > canvas.width) player.x = canvas.width;
+
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2, false);
+    ctx.fillStyle = 'blue';
+    ctx.fill();
+    ctx.closePath();
+}
+
+function handleObstacles() {
+    if (Math.random() < 0.03) {
+        const obstacleX = Math.random() * (canvas.width - obstacleWidth);
+        obstacles.push({x: obstacleX, y: 0});
+    }
+
+    for (let i = 0; i < obstacles.length; i++) {
+        obstacles[i].y += 2;
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacleWidth, obstacleHeight);
+
+        // Collision detection
+        if (
+            player.x > obstacles[i].x && 
+            player.x < obstacles[i].x + obstacleWidth && 
+            player.y + player.radius > obstacles[i].y && 
+            player.y - player.radius < obstacles[i].y + obstacleHeight
+        ) {
+            obstacles.length = 0;
+            score = 0;
+            alert("Game Over!");
+        }
+    }
+
+    // Remove passed obstacles
+    while (obstacles.length && obstacles[0].y > canvas.height) {
+        obstacles.shift();
+    }
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.code === 'ArrowLeft') {
+        player.x -= player.speed;
+    } else if (event.code === 'ArrowRight') {
+        player.x += player.speed;
+    }
+});
+
+mainLoop();
